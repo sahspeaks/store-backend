@@ -40,6 +40,7 @@ export const createQikinkOrder = async (req, res) => {
       totalAmount,
       gateway, // COD or Prepaid
       shippingCost = 0,
+      box_packing = 0,
       gift_wrap = 0,
       rush_order = 0,
       orderType, // BUY_NOW or CART_CHECKOUT
@@ -113,31 +114,19 @@ export const createQikinkOrder = async (req, res) => {
     const count = await mongoose.model("Order").countDocuments();
     // Prepare Qikink order payload
     const qikinkOrderPayload = {
-      order_number: "ORD001", //`ORD${(count + 1).toString().padStart(2, "0")}`,
+      order_number: `ORD${(count + 1).toString().padStart(2, "0")}`,
       qikink_shipping: "1", // Qikink handles shipping
       gateway: gateway, // COD or PREPAID
       total_order_value: totalAmount.toString(),
       line_items: inventoryChecks.map((product) => ({
-        search_from_my_products: 0,
+        search_from_my_products: 1,
         quantity: product.requestedQuantity.toString(),
-        print_type_id: 17, //required only if search_from_my_products is 0
         sku: product.sku,
         price: product.price.toString(),
-        designs: [
-          {
-            design_code: "Floral_A_1", // You might want to dynamically generate this
-            width_inches: "", // Default values, adjust as needed
-            height_inches: "",
-            placement_sku: "bk",
-            design_link: "", // Add design link if available
-            mockup_link:
-              "https://res.cloudinary.com/dra8tbz4z/image/upload/v1734156258/mock_floral_a.png", // Add mockup link if available
-          },
-        ],
       })),
       add_ons: [
         {
-          box_packing: 0,
+          box_packing: box_packing,
           gift_wrap: gift_wrap,
           rush_order: rush_order,
           custom_letter: 0,
@@ -247,12 +236,12 @@ export const createQikinkOrder = async (req, res) => {
 export const getQikinkOrderById = async (req, res) => {
   const accessToken = await qikinkTokenManager.getToken();
   const { qikinkOrderId } = req.body;
-  console.log("qikinkOrderId", qikinkOrderId);
+  // console.log("qikinkOrderId", qikinkOrderId);
   try {
     const config = {
       method: "get",
       maxBodyLength: Infinity,
-      url: `https://sandbox.qikink.com/api/order?id=${qikinkOrderId}`,
+      url: `https://api.qikink.com/api/order?id=${qikinkOrderId}`,
       headers: {
         ClientId: process.env.QIKINK_CLIENT_ID,
         Accesstoken: accessToken,
@@ -260,11 +249,96 @@ export const getQikinkOrderById = async (req, res) => {
     };
     // Send order to Qikink
     const qikinkResponse = await axios(config);
-    const qikinkResponseData = JSON.stringify(qikinkResponse.data);
-    console.log("qikinkResponse", qikinkResponseData);
+    const qikinkResponseData = qikinkResponse.data;
+    // console.log("qikinkResponse", qikinkResponseData);
 
     res.status(200).json({ success: true, qikinkResponseData });
   } catch (error) {
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
+
+// create me a controller for getting all orders placed by a customer with specific orderId
+export const getOrdersByCustomer = async (req, res) => {
+  try {
+    const { customerId } = req.params;
+    const orders = await Order.find({ customerId });
+    res.status(200).json({
+      success: true,
+      message: "Orders fetched successfully",
+      orders,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: "Failed to get orders",
+      message: error.message,
+    });
+  }
+};
+
+export const trackOrderStatus = async (req, res) => {
+  const accessToken = await qikinkTokenManager.getToken();
+  const { qikinkOrderId } = req.params;
+
+  try {
+    const config = {
+      method: "get",
+      maxBodyLength: Infinity,
+      url: `https://api.qikink.com/api/order?id=${qikinkOrderId}`,
+      headers: {
+        ClientId: process.env.QIKINK_CLIENT_ID,
+        Accesstoken: accessToken,
+      },
+    };
+
+    // Send request to Qikink
+    const qikinkResponse = await axios(config);
+    const qikinkResponseData = qikinkResponse.data;
+
+    // console.log(
+    //   "Full API Response:",
+    //   JSON.stringify(qikinkResponseData, null, 2)
+    // );
+
+    // Ensure the response is an array and access the first element
+    const orderData = Array.isArray(qikinkResponseData)
+      ? qikinkResponseData[0]
+      : null;
+
+    if (!orderData) {
+      res.status(404).json({ success: false, message: "Order not found" });
+      return;
+    }
+
+    const shipping = orderData.shipping;
+
+    if (!shipping) {
+      res.status(200).json({
+        success: false,
+        message: "Shipping information is unavailable",
+      });
+      return;
+    }
+
+    const trackingLink = shipping.tracking_link;
+    const awb = shipping.awb;
+
+    if (trackingLink && awb) {
+      const fullTrackingLink = `${trackingLink}${awb}`;
+      res.status(200).json({
+        success: true,
+        trackingLink: fullTrackingLink,
+      });
+    } else {
+      res.status(200).json({
+        success: false,
+        message: "Tracking link or AWB not available",
+        details: { trackingLink, awb },
+      });
+    }
+  } catch (error) {
+    console.error("Error fetching tracking link:", error);
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 };

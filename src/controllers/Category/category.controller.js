@@ -42,7 +42,7 @@ export const findSubcategoriesByCategory = async (req, res) => {
     // Find all subcategories of this category
     const subcategories = await Category.find({
       parentCategory: parentCategory._id,
-    }).select("name description");
+    }).select("name description thumbnail");
 
     res.status(200).json({
       success: true,
