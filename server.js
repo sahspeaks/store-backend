@@ -24,6 +24,15 @@ const start = async () => {
   await qikinkTokenManager.initialize();
 
   const app = express();
+  // CORS configuration
+  const corsOptions = {
+    origin: "http://localhost:5173", // Your frontend URL ""  http://localhost:3000
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true,
+    optionsSuccessStatus: 200,
+  };
+  app.use(cors(corsOptions));
   dotenv.config();
   // Initialize AdminJS
   await initializeDb();

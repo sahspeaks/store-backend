@@ -117,7 +117,7 @@ export const fetchSubcategoriesWithCategories = async (req, res) => {
       level: { $gt: 1 },
     })
       .populate("parentCategory", "name")
-      .select("name parentCategory level");
+      .select("name parentCategory level thumbnail");
 
     // Group subcategories by their parent category
     const categorizedSubcategories = subcategories.reduce(
@@ -131,6 +131,7 @@ export const fetchSubcategoriesWithCategories = async (req, res) => {
         acc[parentName].push({
           name: subcategory.name,
           level: subcategory.level,
+          thumbnail: subcategory.thumbnail,
         });
 
         return acc;
