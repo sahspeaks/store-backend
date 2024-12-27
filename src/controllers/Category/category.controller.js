@@ -129,6 +129,7 @@ export const fetchSubcategoriesWithCategories = async (req, res) => {
         }
 
         acc[parentName].push({
+          id: subcategory._id,
           name: subcategory.name,
           level: subcategory.level,
           thumbnail: subcategory.thumbnail,
