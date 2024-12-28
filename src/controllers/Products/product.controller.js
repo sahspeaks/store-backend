@@ -317,17 +317,48 @@ export const fetchProductsByCategoryAndSubcategoryName = async (req, res) => {
       maxPrice,
     } = req.query;
 
-    // Special case handling for terms like "T-Shirt"
+    // Handle special characters in category and subcategory names (e.g., t-shirt)
     const processName = (name) => {
       const specialTerms = ["t-shirt", "t-shirts"];
-      const lowerName = name.toLowerCase();
+      let decodedName = decodeURIComponent(name).toLowerCase();
 
-      if (specialTerms.some((term) => lowerName.includes(term))) {
-        return lowerName;
-      }
-      return name.replace(/-/g, " ").toLowerCase();
+      // Replace special terms with placeholders to preserve hyphens
+      specialTerms.forEach((term, index) => {
+        const placeholder = `__SPECIAL_TERM_${index}__`;
+        const regex = new RegExp(term, "g");
+        decodedName = decodedName.replace(regex, placeholder);
+      });
+
+      // Replace remaining hyphens with spaces
+      decodedName = decodedName.replace(/-/g, " ");
+
+      // Restore special terms with hyphens
+      specialTerms.forEach((term, index) => {
+        const placeholder = `__SPECIAL_TERM_${index}__`;
+        decodedName = decodedName.replace(new RegExp(placeholder, "g"), term);
+      });
+
+      // Convert to Title Case
+      decodedName = decodedName
+        .split(" ")
+        .map((word) => {
+          // If the word contains a hyphen (e.g., "t-shirt"), capitalize each part
+          if (word.includes("-")) {
+            return word
+              .split("-")
+              .map(
+                (subWord) => subWord.charAt(0).toUpperCase() + subWord.slice(1)
+              )
+              .join("-");
+          }
+          // Otherwise, just capitalize the first letter
+          return word.charAt(0).toUpperCase() + word.slice(1);
+        })
+        .join(" ");
+
+      return decodedName;
     };
-
+    // Extract the parameters
     const decodedCategoryName = processName(categoryName);
     const decodedSubcategoryName = processName(subcategoryName);
 
