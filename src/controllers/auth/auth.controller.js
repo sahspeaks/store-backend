@@ -46,9 +46,17 @@ export const loginUser = async (req, res) => {
 export const signupUser = async (req, res) => {
   try {
     const { firstName, lastName, email, password, phone } = req.body;
+    // Check for existing email
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(400).json({ message: "User already exists" });
+    }
+    // Check for existing phone
+    const existingPhone = await User.findOne({ phone });
+    if (existingPhone) {
+      return res
+        .status(400)
+        .json({ message: "Phone number already registered" });
     }
     const newUser = new User({
       firstName,

@@ -231,7 +231,7 @@ export const fetchProductBySubcategory = async (req, res) => {
     const { subcategoryId } = req.params;
     const {
       page = 1,
-      limit = 10,
+      limit = 12,
       sortBy = "createdAt",
       sortOrder = "desc",
     } = req.query;
@@ -306,8 +306,8 @@ export const fetchProductBySubcategory = async (req, res) => {
 export const fetchProductsByCategoryAndSubcategoryName = async (req, res) => {
   try {
     const { categoryName, subcategoryName } = req.params;
-    console.log("categoryName", categoryName);
-    console.log("subcategoryName", subcategoryName);
+    // console.log("categoryName", categoryName);
+    // console.log("subcategoryName", subcategoryName);
     const {
       page = 1,
       limit = 10,

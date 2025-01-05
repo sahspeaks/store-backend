@@ -7,6 +7,8 @@ const orderItemSchema = new mongoose.Schema({
   quantity: { type: Number, required: true },
   price: { type: Number, required: true },
   size: { type: String, required: true },
+  color: { type: String, required: true },
+  sku: { type: String, required: true },
 });
 
 //delivery address schema
