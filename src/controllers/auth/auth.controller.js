@@ -135,20 +135,38 @@ export const updateUser = async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
-    user.firstName = firstName;
-    user.lastName = lastName;
-    user.avatar = avatar;
-    user.address.country = country;
-    user.address.state = state;
-    user.address.city = city;
-    user.address.street = street;
-    user.address.pincode = pincode;
-    user.address.doorNo = doorNo;
 
-    await user.save();
-    return res.status(200).json({ message: "User updated successfully", user });
+    // Initialize address object if it doesn't exist
+    if (!user.address) {
+      user.address = {};
+    }
+
+    // Update user fields
+    user.firstName = firstName || user.firstName;
+    user.lastName = lastName || user.lastName;
+    user.avatar = avatar || user.avatar;
+    user.address.country = country || user.address.country;
+    user.address.state = state || user.address.state;
+    user.address.city = city || user.address.city;
+    user.address.street = street || user.address.street;
+    user.address.pincode = pincode || user.address.pincode;
+    user.address.doorNo = doorNo || user.address.doorNo;
+
+    try {
+      const updatedUser = await user.save();
+      return res.status(200).json({
+        message: "User updated successfully",
+        user: updatedUser,
+      });
+    } catch (saveError) {
+      console.log("Save error:", saveError);
+      return res.status(400).json({
+        message: "Failed to save user",
+        error: saveError.message,
+      });
+    }
   } catch (err) {
-    console.log(err);
+    console.log("General error:", err);
     return res.status(500).json({ message: "Internal server error" });
   }
 };
