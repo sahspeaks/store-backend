@@ -118,7 +118,18 @@ export const fetchUser = async (req, res) => {
 export const updateUser = async (req, res) => {
   try {
     const { id } = req.params;
-    const { firstName, lastName, address, avatar } = req.body;
+    const {
+      firstName,
+      lastName,
+      avatar,
+      country,
+      state,
+      city,
+      street,
+      pincode,
+      doorNo,
+    } = req.body;
+
     const user = await User.findById(id);
 
     if (!user) {
@@ -126,8 +137,13 @@ export const updateUser = async (req, res) => {
     }
     user.firstName = firstName;
     user.lastName = lastName;
-    user.address = address;
     user.avatar = avatar;
+    user.address.country = country;
+    user.address.state = state;
+    user.address.city = city;
+    user.address.street = street;
+    user.address.pincode = pincode;
+    user.address.doorNo = doorNo;
 
     await user.save();
     return res.status(200).json({ message: "User updated successfully", user });
