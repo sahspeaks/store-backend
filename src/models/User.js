@@ -11,7 +11,13 @@ const deliveryAddressSchema = new mongoose.Schema({
   pincode: { type: String },
   country: { type: String, default: "IN" },
 });
-
+const bankDetailsSchema = new mongoose.Schema({
+  accountNumber: { type: String },
+  ifscCode: { type: String },
+  bankName: { type: String },
+  accountHolderName: { type: String },
+  branchName: { type: String },
+});
 // User schema and model
 const userSchema = new mongoose.Schema(
   {
@@ -36,6 +42,7 @@ const userSchema = new mongoose.Schema(
       default:
         "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png",
     },
+    bankDetails: bankDetailsSchema,
   },
   {
     timestamps: true,
