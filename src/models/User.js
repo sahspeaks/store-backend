@@ -1,6 +1,5 @@
 import mongoose from "mongoose";
 import bcrypt from "bcrypt";
-import { count } from "console";
 
 //address schema
 const deliveryAddressSchema = new mongoose.Schema({

@@ -18,6 +18,7 @@ import userRoutes from "./src/routes/user.route.js";
 import categoryRoutes from "./src/routes/category.route.js";
 import productRoutes from "./src/routes/product.route.js";
 import orderRoutes from "./src/routes/order.route.js";
+import wishlistRoutes from "./src/routes/wishlist.route.js";
 
 const start = async () => {
   // Initialize Token Manager for Qikink
@@ -93,6 +94,7 @@ const start = async () => {
   app.use("/api/v1", categoryRoutes);
   app.use("/api/v1", productRoutes);
   app.use("/api/v1", orderRoutes);
+  app.use("/api/v1", wishlistRoutes);
   //start server
   app.listen(PORT, () => {
     console.log(
