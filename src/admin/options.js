@@ -5,6 +5,7 @@ import Product from "../models/Product.js";
 import Order from "../models/Order.js";
 import Category from "../models/Category.js";
 import Reviews from "../models/Reviews.js";
+import { Wishlist } from "../models/Wishlist.js";
 const options = {
   componentLoader,
   rootPath: "/admin",
@@ -95,6 +96,13 @@ const options = {
       options: {
         listProperties: ["user", "rating", "comment", "product"],
         filterProperties: ["rating", "comment", "product"],
+      },
+    },
+    {
+      resource: Wishlist,
+      options: {
+        listProperties: ["user", "products"],
+        filterProperties: ["user", "products"],
       },
     },
   ],

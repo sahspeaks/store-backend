@@ -91,8 +91,9 @@ const addToWishlist = async (req, res) => {
 // Remove product from wishlist
 const removeFromWishlist = async (req, res) => {
   try {
-    const { productId, userId } = req.params;
-
+    const { productId } = req.params;
+    const { userId } = req.body;
+    console.log("Product ID:", productId, "User ID:", userId);
     if (!productId) {
       return res.status(400).json({
         success: false,
@@ -116,10 +117,11 @@ const removeFromWishlist = async (req, res) => {
       });
     }
 
-    wishlist.removeProduct(productId);
+    const newWishlist = wishlist.removeProduct(productId);
     await wishlist.save();
 
     return res.status(200).json({
+      data: newWishlist,
       success: true,
       message: "Product removed from wishlist",
     });

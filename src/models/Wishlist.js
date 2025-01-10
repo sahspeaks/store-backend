@@ -45,9 +45,9 @@ wishlistSchema.methods.addProduct = function (productId) {
 
 // Method to remove product from wishlist
 wishlistSchema.methods.removeProduct = function (productId) {
-  this.products = this.products.filter(
+  return (this.products = this.products.filter(
     (item) => item.product.toString() !== productId.toString()
-  );
+  ));
 };
 
 const Wishlist = mongoose.model("Wishlist", wishlistSchema);

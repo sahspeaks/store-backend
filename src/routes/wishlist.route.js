@@ -10,12 +10,11 @@ import { verifyToken } from "../middleware/auth.middleware.js";
 const router = Router();
 
 // Apply authentication middleware to all wishlist routes
-router.use(verifyToken);
 
 // Routes
-router.get("/wishlist", getWishlist);
-router.post("/wishlist/add", addToWishlist);
-router.delete("/wishlist/remove/:productId", removeFromWishlist);
-router.delete("/wishlist/clear", clearWishlist);
+router.post("/wishlist", verifyToken, getWishlist);
+router.post("/wishlist/add", verifyToken, addToWishlist);
+router.delete("/wishlist/remove/:productId", verifyToken, removeFromWishlist);
+router.delete("/wishlist/clear", verifyToken, clearWishlist);
 
 export default router;
