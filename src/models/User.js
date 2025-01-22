@@ -1,5 +1,22 @@
 import mongoose from "mongoose";
 import bcrypt from "bcrypt";
+
+//address schema
+const deliveryAddressSchema = new mongoose.Schema({
+  doorNo: { type: String },
+  street: { type: String },
+  city: { type: String },
+  state: { type: String },
+  pincode: { type: String },
+  country: { type: String, default: "IN" },
+});
+const bankDetailsSchema = new mongoose.Schema({
+  accountNumber: { type: String },
+  ifscCode: { type: String },
+  bankName: { type: String },
+  accountHolderName: { type: String },
+  branchName: { type: String },
+});
 // User schema and model
 const userSchema = new mongoose.Schema(
   {
@@ -9,13 +26,22 @@ const userSchema = new mongoose.Schema(
     lastName: { type: String, required: true },
     phone: { type: String, unique: true, required: true },
     address: {
-      type: String,
+      type: deliveryAddressSchema,
+      default: {
+        doorNo: "",
+        street: "",
+        city: "",
+        state: "",
+        pincode: "",
+        country: "IN",
+      },
     },
     avatar: {
       type: String,
       default:
         "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png",
     },
+    bankDetails: bankDetailsSchema,
   },
   {
     timestamps: true,

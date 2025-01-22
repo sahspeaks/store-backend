@@ -5,6 +5,7 @@ import Product from "../models/Product.js";
 import Order from "../models/Order.js";
 import Category from "../models/Category.js";
 import Reviews from "../models/Reviews.js";
+import { Wishlist } from "../models/Wishlist.js";
 const options = {
   componentLoader,
   rootPath: "/admin",
@@ -43,17 +44,34 @@ const options = {
           "paymentId",
           "awbNo",
           "status",
+          "paymentStatus",
+          "paymentMethod",
         ],
         filterProperties: ["createdAt", "status"],
-        editProperties: ["status"],
+        editProperties: ["status", "paymentStatus"],
         properties: {
           status: {
             type: "string",
             availableValues: [
-              { value: "pending", label: "Pending" },
-              { value: "shipped", label: "Shipped" },
-              { value: "delivered", label: "Delivered" },
-              { value: "cancelled", label: "Canceled" },
+              { value: "CREATED", label: "CREATED" },
+              { value: "CONFIRMED", label: "CONFIRMED" },
+              { value: "PAYMENT_FAILED", label: "PAYMENT_FAILED" },
+              { value: "PROCESSING", label: "PROCESSING" },
+              { value: "SHIPPED", label: "SHIPPED" },
+              { value: "DELIVERED", label: "DELIVERED" },
+              { value: "CANCELLED", label: "CANCELLED" },
+              { value: "DISPUTED", label: "DISPUTED" },
+              { value: "REFUNDED", label: "REFUNDED" },
+            ],
+          },
+          paymentStatus: {
+            type: "string",
+            availableValues: [
+              { value: "PENDING", label: "PENDING" },
+              { value: "PAID", label: "PAID" },
+              { value: "FAILED", label: "FAILED" },
+              { value: "REFUNDED", label: "REFUNDED" },
+              { value: "COD", label: "COD" },
             ],
           },
         },
@@ -78,6 +96,13 @@ const options = {
       options: {
         listProperties: ["user", "rating", "comment", "product"],
         filterProperties: ["rating", "comment", "product"],
+      },
+    },
+    {
+      resource: Wishlist,
+      options: {
+        listProperties: ["user", "products"],
+        filterProperties: ["user", "products"],
       },
     },
   ],

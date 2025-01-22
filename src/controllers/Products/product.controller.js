@@ -231,7 +231,7 @@ export const fetchProductBySubcategory = async (req, res) => {
     const { subcategoryId } = req.params;
     const {
       page = 1,
-      limit = 10,
+      limit = 12,
       sortBy = "createdAt",
       sortOrder = "desc",
     } = req.query;
@@ -298,6 +298,241 @@ export const fetchProductBySubcategory = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Error fetching products by subcategory",
+      error: error.message,
+    });
+  }
+};
+// Fetch Products by Category and Subcategory
+export const fetchProductsByCategoryAndSubcategoryName = async (req, res) => {
+  try {
+    const { categoryName, subcategoryName } = req.params;
+    // console.log("categoryName", categoryName);
+    // console.log("subcategoryName", subcategoryName);
+    const {
+      page = 1,
+      limit = 10,
+      sortBy = "createdAt",
+      sortOrder = "desc",
+      minPrice,
+      maxPrice,
+    } = req.query;
+
+    // Handle special characters in category and subcategory names (e.g., t-shirt)
+    const processName = (name) => {
+      const specialTerms = ["t-shirt", "t-shirts"];
+      let decodedName = decodeURIComponent(name).toLowerCase();
+
+      // Replace special terms with placeholders to preserve hyphens
+      specialTerms.forEach((term, index) => {
+        const placeholder = `__SPECIAL_TERM_${index}__`;
+        const regex = new RegExp(term, "g");
+        decodedName = decodedName.replace(regex, placeholder);
+      });
+
+      // Replace remaining hyphens with spaces
+      decodedName = decodedName.replace(/-/g, " ");
+
+      // Restore special terms with hyphens
+      specialTerms.forEach((term, index) => {
+        const placeholder = `__SPECIAL_TERM_${index}__`;
+        decodedName = decodedName.replace(new RegExp(placeholder, "g"), term);
+      });
+
+      // Convert to Title Case
+      decodedName = decodedName
+        .split(" ")
+        .map((word) => {
+          // If the word contains a hyphen (e.g., "t-shirt"), capitalize each part
+          if (word.includes("-")) {
+            return word
+              .split("-")
+              .map(
+                (subWord) => subWord.charAt(0).toUpperCase() + subWord.slice(1)
+              )
+              .join("-");
+          }
+          // Otherwise, just capitalize the first letter
+          return word.charAt(0).toUpperCase() + word.slice(1);
+        })
+        .join(" ");
+
+      return decodedName;
+    };
+    // Extract the parameters
+    const decodedCategoryName = processName(categoryName);
+    const decodedSubcategoryName = processName(subcategoryName);
+
+    const category = await Category.findOne({
+      name: { $regex: new RegExp(`^${decodedCategoryName}$`, "i") },
+      level: 1,
+    });
+
+    if (!category) {
+      return res.status(404).json({
+        success: false,
+        message: "Category not found",
+      });
+    }
+
+    const subcategory = await Category.findOne({
+      name: { $regex: new RegExp(`^${decodedSubcategoryName}$`, "i") },
+      parentCategory: category._id,
+      level: { $gt: 1 },
+    });
+
+    if (!subcategory) {
+      return res.status(404).json({
+        success: false,
+        message: "Subcategory not found",
+      });
+    }
+
+    const filter = { category: subcategory._id };
+
+    if (minPrice || maxPrice) {
+      filter.price = {};
+      if (minPrice) filter.price.$gte = Number(minPrice);
+      if (maxPrice) filter.price.$lte = Number(maxPrice);
+    }
+
+    const pageNumber = Math.max(1, Number(page));
+    const limitNumber = Math.max(1, Number(limit));
+    const sortOptions = {
+      [sortBy]: sortOrder === "asc" ? 1 : -1,
+    };
+
+    const products = await Product.find(filter)
+      .sort(sortOptions)
+      .populate({
+        path: "category",
+        select: "name description level parentCategory",
+        populate: {
+          path: "parentCategory",
+          select: "name",
+        },
+      })
+      .skip((pageNumber - 1) * limitNumber)
+      .limit(limitNumber);
+
+    const totalProducts = await Product.countDocuments(filter);
+
+    res.status(200).json({
+      success: true,
+      category: {
+        id: category._id,
+        name: category.name,
+        description: category.description,
+      },
+      subcategory: {
+        id: subcategory._id,
+        name: subcategory.name,
+        description: subcategory.description,
+      },
+      products,
+      currentPage: pageNumber,
+      totalPages: Math.ceil(totalProducts / limitNumber),
+      totalProducts,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Error fetching products",
+      error: error.message,
+    });
+  }
+};
+
+// Fetch Products by Category and Subcategory ID
+export const fetchProductsByCategoryAndSubcategoryId = async (req, res) => {
+  try {
+    const { categoryId, subcategoryId } = req.params;
+    const {
+      page = 1,
+      limit = 10,
+      sortBy = "createdAt",
+      sortOrder = "desc",
+      minPrice,
+      maxPrice,
+    } = req.query;
+
+    if (
+      !mongoose.Types.ObjectId.isValid(categoryId) ||
+      !mongoose.Types.ObjectId.isValid(subcategoryId)
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid category or subcategory ID",
+      });
+    }
+
+    const category = await Category.findOne({
+      _id: categoryId,
+      level: 1,
+    });
+
+    const subcategory = await Category.findOne({
+      _id: subcategoryId,
+      parentCategory: categoryId,
+      level: { $gt: 1 },
+    });
+
+    if (!category || !subcategory) {
+      return res.status(404).json({
+        success: false,
+        message: "Category or subcategory not found",
+      });
+    }
+
+    const filter = { category: subcategoryId };
+
+    if (minPrice || maxPrice) {
+      filter.price = {};
+      if (minPrice) filter.price.$gte = Number(minPrice);
+      if (maxPrice) filter.price.$lte = Number(maxPrice);
+    }
+
+    const pageNumber = Math.max(1, Number(page));
+    const limitNumber = Math.max(1, Number(limit));
+    const sortOptions = {
+      [sortBy]: sortOrder === "asc" ? 1 : -1,
+    };
+
+    const products = await Product.find(filter)
+      .sort(sortOptions)
+      .populate({
+        path: "category",
+        select: "name description level parentCategory",
+        populate: {
+          path: "parentCategory",
+          select: "name",
+        },
+      })
+      .skip((pageNumber - 1) * limitNumber)
+      .limit(limitNumber);
+
+    const totalProducts = await Product.countDocuments(filter);
+
+    res.status(200).json({
+      success: true,
+      category: {
+        id: category._id,
+        name: category.name,
+        description: category.description,
+      },
+      subcategory: {
+        id: subcategory._id,
+        name: subcategory.name,
+        description: subcategory.description,
+      },
+      products,
+      currentPage: pageNumber,
+      totalPages: Math.ceil(totalProducts / limitNumber),
+      totalProducts,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Error fetching products",
       error: error.message,
     });
   }

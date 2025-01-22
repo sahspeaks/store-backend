@@ -7,6 +7,8 @@ const orderItemSchema = new mongoose.Schema({
   quantity: { type: Number, required: true },
   price: { type: Number, required: true },
   size: { type: String, required: true },
+  color: { type: String, required: true },
+  sku: { type: String, required: true },
 });
 
 //delivery address schema
@@ -43,8 +45,29 @@ const orderSchema = new mongoose.Schema(
     awbNo: { type: String },
     status: {
       type: String,
-      enum: ["pending", "shipped", "delivered", "cancelled"],
-      default: "pending",
+      enum: [
+        "CREATED",
+        "PAYMENT_PENDING",
+        "PAYMENT_FAILED",
+        "CONFIRMED",
+        "PROCESSING",
+        "SHIPPED",
+        "DELIVERED",
+        "CANCELLED",
+        "DISPUTED",
+        "REFUNDED",
+      ],
+      default: "CREATED",
+    },
+    paymentStatus: {
+      type: String,
+      enum: ["PENDING", "PAID", "FAILED", "REFUNDED", "COD"],
+      default: "PENDING",
+    },
+    paymentMethod: {
+      type: String,
+      enum: ["COD", "RAZORPAY"],
+      required: true,
     },
     orderType: {
       type: String,

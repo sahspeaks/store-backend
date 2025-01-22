@@ -18,12 +18,22 @@ import userRoutes from "./src/routes/user.route.js";
 import categoryRoutes from "./src/routes/category.route.js";
 import productRoutes from "./src/routes/product.route.js";
 import orderRoutes from "./src/routes/order.route.js";
+import wishlistRoutes from "./src/routes/wishlist.route.js";
 
 const start = async () => {
   // Initialize Token Manager for Qikink
   await qikinkTokenManager.initialize();
 
   const app = express();
+  // CORS configuration
+  const corsOptions = {
+    origin: "http://localhost:5173", // Your frontend URL ""  http://localhost:3000
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true,
+    optionsSuccessStatus: 200,
+  };
+  app.use(cors(corsOptions));
   dotenv.config();
   // Initialize AdminJS
   await initializeDb();
@@ -84,6 +94,7 @@ const start = async () => {
   app.use("/api/v1", categoryRoutes);
   app.use("/api/v1", productRoutes);
   app.use("/api/v1", orderRoutes);
+  app.use("/api/v1", wishlistRoutes);
   //start server
   app.listen(PORT, () => {
     console.log(

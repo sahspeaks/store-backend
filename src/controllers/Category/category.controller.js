@@ -42,7 +42,7 @@ export const findSubcategoriesByCategory = async (req, res) => {
     // Find all subcategories of this category
     const subcategories = await Category.find({
       parentCategory: parentCategory._id,
-    }).select("name description");
+    }).select("name description thumbnail");
 
     res.status(200).json({
       success: true,
@@ -117,7 +117,7 @@ export const fetchSubcategoriesWithCategories = async (req, res) => {
       level: { $gt: 1 },
     })
       .populate("parentCategory", "name")
-      .select("name parentCategory level");
+      .select("name parentCategory level thumbnail");
 
     // Group subcategories by their parent category
     const categorizedSubcategories = subcategories.reduce(
@@ -129,8 +129,11 @@ export const fetchSubcategoriesWithCategories = async (req, res) => {
         }
 
         acc[parentName].push({
+          id: subcategory._id,
           name: subcategory.name,
           level: subcategory.level,
+          thumbnail: subcategory.thumbnail,
+          parentCategory: subcategory.parentCategory.name,
         });
 
         return acc;
