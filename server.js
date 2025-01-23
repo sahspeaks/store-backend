@@ -27,7 +27,7 @@ const start = async () => {
   const app = express();
   // CORS configuration
   const corsOptions = {
-    origin: "https://moonsflare.netlify.app", // Your frontend URL ""  http://localhost:5173  https://moonsflare.netlify.app/
+    origin: "https://moonsflare.com", // Your frontend URL "http://localhost:5173"    https://moonsflare.netlify.app/
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
